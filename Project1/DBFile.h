@@ -21,6 +21,7 @@ class DBFile
 		Record* currentRecord;
 		Page* myPage;
 		bool pageWritten;
+		off_t currentPageIndex;
 
 	public:
 		DBFile(); 

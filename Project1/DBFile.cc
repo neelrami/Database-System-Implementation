@@ -7,14 +7,13 @@
 #include "DBFile.h"
 #include "Defs.h"
 
-// stub file .. replace it with your own DBFile.cc
-
 DBFile::DBFile () 
 {
     myFile=new File();
     currentRecord=new Record();
     myPage=new Page();
     pageWritten=true;
+    currentPageIndex=0;
 }
 
 DBFile::~DBFile() 
@@ -60,18 +59,47 @@ int DBFile::Open (const char *f_path)
 
 void DBFile::MoveFirst () 
 {
-
+    
 }
 
 int DBFile::Close () 
 {
-
+    if(pageWritten==false)
+    {
+        off_t tempIndex=myFile->GetLength();
+        if(tempIndex==0)
+        {
+            currentPageIndex=0;
+        }
+        else
+        {
+            currentPageIndex=tempIndex-1;
+        }
+        myFile->AddPage(myPage,tempIndex);
+        myPage->EmptyItOut();
+    }
+    pageWritten=true;
+    return myFile->Close();
 }
 
 void DBFile::Add (Record &rec) 
 {
-
-
+    if(myPage->Append(&rec)==0)
+    {
+        off_t tempIndex=myFile->GetLength();
+        if(tempIndex==0)
+        {
+            currentPageIndex=0;
+        }
+        else
+        {
+            currentPageIndex=tempIndex-1;
+        }
+        myFile->AddPage(myPage,tempIndex);
+        myPage->EmptyItOut();
+        myPage->Append(&rec);
+    }
+    pageWritten=false;
 }
 
 int DBFile::GetNext (Record &fetchme) 
@@ -81,5 +109,13 @@ int DBFile::GetNext (Record &fetchme)
 
 int DBFile::GetNext (Record &fetchme, CNF &cnf, Record &literal) 
 {
-
+    ComparisonEngine cEngine;
+    while(GetNext(fetchme)!=0)
+    {
+        if (cEngine.Compare(&fetchme,&literal,&cnf))
+        {
+            return 1;
+        }
+    }
+    return 0;
 }
