@@ -37,7 +37,7 @@ void DBFile::Load (Schema &f_schema, const char *loadpath)
     if(tempFile==NULL)
     {
         cerr<<"Given File Path "<<loadpath<<" is invalid."<<endl;
-		exit (1);
+		exit(1);
     }
     else
     {
@@ -59,6 +59,15 @@ int DBFile::Open (const char *f_path)
 
 void DBFile::MoveFirst () 
 {
+    if(myFile->GetLength()==0)
+    {
+        cerr<<"File is Empty"<<endl;
+		exit(1);
+    }
+    else
+    {
+        myFile->GetPage(myPage,0);
+    }
     
 }
 
@@ -95,7 +104,7 @@ void DBFile::Add (Record &rec)
         {
             currentPageIndex=tempIndex-1;
         }
-        myFile->AddPage(myPage,tempIndex);
+        myFile->AddPage(myPage,currentPageIndex);
         myPage->EmptyItOut();
         myPage->Append(&rec);
     }
@@ -104,18 +113,43 @@ void DBFile::Add (Record &rec)
 
 int DBFile::GetNext (Record &fetchme) 
 {
-
+    while(myPage->GetFirst(&fetchme)!=1)
+    {
+        off_t fileLength;
+        if(myFile->GetLength()==0)
+        {
+            fileLength=0;
+        }
+        else
+        {
+           fileLength=myFile->GetLength()-1;
+        }
+        if(++currentPageIndex<fileLength)
+        {
+           myFile->GetPage(myPage,currentPageIndex);
+        }
+        else
+        {
+           return 0;
+        }
+    }
+    return 1;
 }
 
 int DBFile::GetNext (Record &fetchme, CNF &cnf, Record &literal) 
 {
     ComparisonEngine cEngine;
-    while(GetNext(fetchme)!=0)
+    while(GetNext(fetchme))
     {
-        if (cEngine.Compare(&fetchme,&literal,&cnf))
+        if(cEngine.Compare(&fetchme,&literal,&cnf))
         {
             return 1;
         }
     }
     return 0;
+}
+
+off_t DBFile::GetLength1()
+{
+    return myFile->GetLength();
 }
