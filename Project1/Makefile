@@ -13,13 +13,14 @@ tag = -n
 endif
 
 gTest: libgtest.a sampletest
-	$(DD) $(SRC_DIR)/gTestProj1.cc $(BIN_DIR)/libgtest.a -o $(BIN_DIR)/gTestProj1 $(BIN_DIR)/Record.o $(BIN_DIR)/Comparison.o $(BIN_DIR)/ComparisonEngine.o $(BIN_DIR)/Schema.o $(BIN_DIR)/File.o $(BIN_DIR)/DBFile.o  $(BIN_DIR)/y.tab.o $(BIN_DIR)/lex.yy.o
+	$(DD) $(SRC_DIR)/gTestProj1.cc $(BIN_DIR)/libgtest.a -o $(BIN_DIR)/gTestProj1 $(BIN_DIR)/Record.o $(BIN_DIR)/Comparison.o $(BIN_DIR)/ComparisonEngine.o $(BIN_DIR)/Schema.o $(BIN_DIR)/File.o $(BIN_DIR)/DBFile.o $(BIN_DIR)/y.tab.o $(BIN_DIR)/lex.yy.o
 
 sampletest: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o gTestProj1.o y.tab.o lex.yy.o 
 	mv *.o $(BIN_DIR)
 
 test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test.o
 	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test.o -lfl
+	mv *.o $(BIN_DIR)
 	
 main: Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o
 	$(CC) -o main Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o -lfl
@@ -67,6 +68,7 @@ lex.yy.o: $(SRC_DIR)/Lexer.l
 
 clean: 
 	rm -f *.o
+	rm -f *.bin
 	rm -f *.out
 	rm -f y.tab.c
 	rm -f lex.yy.c

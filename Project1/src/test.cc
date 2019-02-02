@@ -72,7 +72,7 @@ void test3 ()
 		temp.Print (rel->schema());
 		if (counter % 10000 == 0) 
 		{
-			cout << counter << "\n";
+			//cout << counter << "\n";
 		}
 	}
 	cout << "Selected " << counter << " Records.\n";

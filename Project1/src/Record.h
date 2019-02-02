@@ -29,7 +29,6 @@ friend class Page;
 
 private:
 	char *bits;
-	char* GetBits ();
 	void SetBits (char *bits);
 	void CopyBits(char *bits, int b_len);
 
@@ -37,6 +36,10 @@ public:
 	Record ();
 	~Record();
 
+	Record(Record &tempRecord);
+
+	char* GetBits ();
+	
 	// suck the contents of the record fromMe into this; note that after
 	// this call, fromMe will no longer have anything inside of it
 	void Consume (Record *fromMe);

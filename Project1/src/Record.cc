@@ -10,6 +10,11 @@ Record :: Record () {
 	bits = NULL;
 }
 
+Record :: Record (Record &tempRecord)
+{
+	bits=tempRecord.bits;
+}
+
 Record :: ~Record () {
 	if (bits != NULL) {
 		delete [] bits;
@@ -323,14 +328,14 @@ void Record :: Print (Schema *mySchema) {
 
 	// loop through all of the attributes
 	for (int i = 0; i < n; i++) {
-
+	
 		// print the attribute name
 		cout << atts[i].name << ": ";
-
+	
 		// use the i^th slot at the head of the record to get the
 		// offset to the correct attribute in the record
+		cout<<((int *) bits)[i + 1]<<endl;
 		int pointer = ((int *) bits)[i + 1];
-
 		// here we determine the type, which given in the schema;
 		// depending on the type we then print out the contents
 		cout << "[";
