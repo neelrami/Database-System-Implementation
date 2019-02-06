@@ -4,11 +4,6 @@
 #include "Record.h"
 #include "TwoWayList.cc"
 
-TEST (CreateTest, SubTest1) 
-{ 
-  
-}
-
 TEST (OpenTest, SubTest1) 
 { 
   DBFile* dbfile=new DBFile();

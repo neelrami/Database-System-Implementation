@@ -1,10 +1,11 @@
 #include <iostream>
 #include "DBFile.h"
 #include "test.h"
+#include <ctime>
 
 // make sure that the file path/dir information below is correct
 const char *dbfile_dir = ""; // dir where binary heap files should be stored
-const char *tpch_dir ="/home/neel/Desktop/P1/table_files/"; // dir where dbgen tpch files (extension *.tbl) can be found
+const char *tpch_dir ="/cise/tmp/dbi_sp11/DATA/1G/"; // dir where dbgen tpch files (extension *.tbl) can be found
 const char *catalog_path = "catalog"; // full path of the catalog file
 
 using namespace std;
@@ -37,16 +38,21 @@ void test2 ()
 	Record temp;
 
 	int counter = 0;
+	clock_t scanStartTime=clock();
 	while (dbfile->GetNext (temp) == 1) 
 	{
 		counter += 1;
 		//temp.Print (rel->schema());
 		if (counter % 10000 == 0) 
 		{
-			cout << counter << "\n";
+			//cout << counter << "\n";
 		}
 	}
+	clock_t scanStopTime=clock();
+	double scanTime=double(scanStopTime-scanStartTime)/CLOCKS_PER_SEC;
 	cout << "Scanned " << counter << " Records.\n";
+	cout << "Total Scan Time " << scanTime << " seconds.\n";
+	cout << "Records scanned per second " << counter/scanTime << " Records.\n";
 	dbfile->Close ();
 }
 
@@ -66,6 +72,7 @@ void test3 ()
 	Record temp;
 
 	int counter = 0;
+	clock_t queryStartTime=clock();
 	while (dbfile->GetNext (temp, cnf, literal) == 1) 
 	{
 		counter += 1;
@@ -75,7 +82,10 @@ void test3 ()
 			//cout << counter << "\n";
 		}
 	}
+	clock_t queryStopTime=clock();
+	double queryTime=double(queryStopTime-queryStartTime)/CLOCKS_PER_SEC;
 	cout << "Selected " << counter << " Records.\n";
+	cout << "Query Time " << queryTime << "seconds.\n";
 	dbfile->Close ();
 }
 

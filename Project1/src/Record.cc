@@ -334,7 +334,7 @@ void Record :: Print (Schema *mySchema) {
 	
 		// use the i^th slot at the head of the record to get the
 		// offset to the correct attribute in the record
-		cout<<((int *) bits)[i + 1]<<endl;
+		//cout<<((int *) bits)[i + 1]<<endl;
 		int pointer = ((int *) bits)[i + 1];
 		// here we determine the type, which given in the schema;
 		// depending on the type we then print out the contents
