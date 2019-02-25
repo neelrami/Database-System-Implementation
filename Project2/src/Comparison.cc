@@ -19,7 +19,6 @@ Comparison::Comparison(const Comparison &copy_me)
 	whichAtt2 = copy_me.whichAtt2;
 
 	attType = copy_me.attType;
-
 	op = copy_me.op;
 }
 
@@ -141,10 +140,10 @@ int CNF :: GetSortOrders (OrderMaker &left, OrderMaker &right) {
 		}
 
 		// now verify that it operates over atts from both tables
-		if (!((orList[i][0].operand1 == Left && orList[i][0].operand2 == Right) ||
-		      (orList[i][0].operand2 == Left && orList[i][0].operand1 == Right))) {
-			continue;		
-		}
+//		if (!((orList[i][0].operand1 == Left && orList[i][0].operand2 == Right) ||
+//		      (orList[i][0].operand2 == Left && orList[i][0].operand1 == Right))) {
+//			continue;		
+//		}
 
 		// since we are here, we have found a join attribute!!!
 		// so all we need to do is add the new comparison info into the
@@ -449,6 +448,7 @@ void CNF :: GrowFromParseTree (struct AndList *parseTree, Schema *mySchema,
 		
 		// see if we have run off of the end of all of the ANDs
 		if (parseTree == NULL) {
+			//cout<<"NULL Parse tree";
 			cnf.numAnds = whichAnd;
 			break;
 		}	

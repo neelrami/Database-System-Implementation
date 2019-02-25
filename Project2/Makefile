@@ -4,12 +4,20 @@ CC = g++ -O2 -Wno-deprecated
 tag = -i
 
 CURR_DIR = $(shell pwd)
+GTEST_DIR = $(CURR_DIR)/gtest
 BIN_DIR = $(CURR_DIR)/bin
 SRC_DIR = $(CURR_DIR)/src
+DD = $(CC) -isystem $(GTEST_DIR)/include -Wall -Wextra -pthread
 
 ifdef linux
 tag = -n
 endif
+
+gTest2: libgtest.a sampletest2
+	$(DD) $(SRC_DIR)/gTestProj2.cc $(BIN_DIR)/libgtest.a -o $(BIN_DIR)/gTestProj2 $(BIN_DIR)/Record.o $(BIN_DIR)/Comparison.o $(BIN_DIR)/ComparisonEngine.o $(BIN_DIR)/Schema.o $(BIN_DIR)/BigQ.o $(BIN_DIR)/Pipe.o $(BIN_DIR)/File.o $(BIN_DIR)/DBFile.o $(BIN_DIR)/y.tab.o $(BIN_DIR)/lex.yy.o
+
+sampletest2: Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o Pipe.o gTestProj2.o y.tab.o lex.yy.o 
+	mv *.o $(BIN_DIR)
 
 test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o Pipe.o y.tab.o lex.yy.o test.o
 	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o Pipe.o y.tab.o lex.yy.o test.o -lfl -lpthread
@@ -41,6 +49,14 @@ Record.o: $(SRC_DIR)/Record.cc
 
 Schema.o: $(SRC_DIR)/Schema.cc
 	$(CC) -g -c $(SRC_DIR)/Schema.cc
+
+gTestProj2.o : $(SRC_DIR)/gTestProj2.cc
+	$(CC) -g -c $(SRC_DIR)/gTestProj2.cc
+
+libgtest.a: 
+	g++ -w -isystem $(GTEST_DIR)/include -I$(GTEST_DIR) -pthread -c $(GTEST_DIR)/src/gtest-all.cc
+	ar -rv libgtest.a gtest-all.o	
+	mv libgtest.a $(CURR_DIR)/bin
 
 y.tab.o: $(SRC_DIR)/Parser.y
 	yacc -d $(SRC_DIR)/Parser.y

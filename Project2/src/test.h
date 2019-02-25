@@ -11,9 +11,9 @@ using namespace std;
 
 // make sure that the information below is correct
 
-char *catalog_path = "catalog"; 
-char *tpch_dir ="/cise/tmp/dbi_sp11/DATA/10M/"; // dir where dbgen tpch files (extension *.tbl) can be found
-char *dbfile_dir = ""; 
+char catalog_path[] = "catalog"; 
+char tpch_dir[] ="./table_files/"; // dir where dbgen tpch files (extension *.tbl) can be found
+char dbfile_dir[] = ""; 
 
 
 extern "C" {
@@ -64,6 +64,7 @@ public:
 			cout << "Can't parse your sort CNF.\n";
 			exit (1);
 		}
+		//sortorder.Print();
 		cout << " \n";
 		Record literal;
 		CNF sort_pred;
@@ -77,14 +78,14 @@ public:
 relation *rel;
 
 
-char *supplier = "supplier"; 
-char *partsupp = "partsupp"; 
-char *part = "part"; 
-char *nation = "nation"; 
-char *customer = "customer"; 
-char *orders = "orders"; 
-char *region = "region"; 
-char *lineitem = "lineitem"; 
+char supplier[] = "supplier"; 
+char partsupp[] = "partsupp"; 
+char part[] = "part"; 
+char nation[] = "nation"; 
+char customer[] = "customer"; 
+char orders[] = "orders"; 
+char region[] = "region"; 
+char lineitem[] = "lineitem"; 
 
 relation *s, *p, *ps, *n, *li, *r, *o, *c;
 
