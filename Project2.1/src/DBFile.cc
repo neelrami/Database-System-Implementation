@@ -6,250 +6,110 @@
 #include "ComparisonEngine.h"
 #include "DBFile.h"
 #include "Defs.h"
+#include "GenericDBFile.h"
+#include "HeapFile.h"
+#include "SortedFile.h"
 
-//Class Constructor
-DBFile::DBFile () 
+using namespace std;
+
+DBFile::DBFile() 
 {
-    myFile=new File();
-    currentRecord=new Record();
-    myPage=new Page();
-    pageWritten=true;
-    currentPageIndex=0;
+	myGDBFile=NULL;
 }
 
-//Class Destructor
-DBFile::~DBFile() 
+int DBFile::Create(char *f_path, fType f_type, void *startup) 
 {
-    delete myFile;
-    delete currentRecord;
-    delete myPage;
+    if(f_type==heap)
+    {
+		myGDBFile=new HeapFile();
+	}
+
+	else if(f_type==sorted)
+	{
+		myGDBFile=new SortedFile();	
+	}
+
+	else if(f_type==tree)
+	{
+
+	}
+
+	if(myGDBFile!=NULL)
+	{
+		return myGDBFile->Create(f_path,f_type,startup);		
+	}	
 }
 
-/*
-Return Type: Integer 
-1: Success
-0: Failure
-
-This function is used to create the file.
-
-*/
-int DBFile::Create (const char *f_path, fType f_type, void *startup) 
+void DBFile::Load(Schema &f_schema, char *loadpath) 
 {
-    char* newFPath=(char*)f_path;
-    myFile->Open(0,newFPath);
-    int temp=myFile->GetmyFilDes();
-    if(temp==0)
-    {
-        return 0;
-    }
-    else
-    {
-        return 1;
-    }
+	myGDBFile->Load(f_schema,loadpath);
 }
 
-/*
-Return Type: void
-
-This function bulk loads the DBFile instance from a text file, appending
-new data to it using the SuckNextRecord function from Record.h
-
-*/
-void DBFile::Load (Schema &f_schema, const char *loadpath) 
+int DBFile::Open(char *f_path) 
 {
-    FILE* tempFile;
-    tempFile=fopen(loadpath,"r");
-    if(tempFile==NULL)
-    {
-        cerr<<"Given File Path "<<loadpath<<" is invalid."<<endl;
-		exit(1);
-    }
-    else
-    {
-        Record tempRecord;
-        while(tempRecord.SuckNextRecord(&f_schema,tempFile)!=0)
-        {
-            Add(tempRecord);
-        }
-        fclose(tempFile);
-    }
+	char metaDataFilePath[1000];
+	sprintf(metaDataFilePath,"%s.metadata",f_path);
+	FILE* metaData= fopen(metaDataFilePath,"r");;
+	fType type;
+	fscanf(metaData,"%d",&type);
+	fclose(metaData);
+
+	if(type==0)
+	{
+		if(myGDBFile==NULL)
+		{
+			myGDBFile=new HeapFile();
+		}
+	}
+
+	else if(type==1)
+	{
+		if(myGDBFile==NULL)
+		{
+			myGDBFile=new SortedFile();
+		}
+		 
+	}
+
+	else if(type==2)
+	{
+
+	}
+
+	return myGDBFile->Open(f_path);
 }
 
-/*
-Return Type: Integer
-1: Success
-0: Failure
-
-This function is used to open a file that has already been created and also that has been closed.
-*/
-int DBFile::Open (const char *f_path) 
-{ 
-    char* newFPath=(char*)f_path;
-    int temp=myFile->Open(1,newFPath);
-    if(temp==0)
-    {
-        return 0;
-    }
-    else
-    {
-        return 1;
-    }
+void DBFile::MoveFirst()
+{
+	myGDBFile->MoveFirst();
 }
 
-/*
-Return Type: void
-
-*/
-void DBFile::MoveFirst () 
+int DBFile::Close() 
 {
-    if(myFile->GetLength()==0)
-    {
-        cerr<<"File is Empty"<<endl;
-		exit(1);
-    }
-    else
-    {
-        myFile->GetPage(myPage,0);
-    }
-    
+	return myGDBFile->Close();
 }
 
-/*
-Return Type: Integer
-1: Success
-0: Failure
-
-This function simply closes the file.
-
-*/
-int DBFile::Close () 
+void DBFile::Add(Record &rec) 
 {
-    if(pageWritten==false)
-    {
-        off_t tempIndex=myFile->GetLength();
-        if(tempIndex==0)
-        {
-            currentPageIndex=0;
-        }
-        else
-        {
-            currentPageIndex=tempIndex-1;
-        }
-        myFile->AddPage(myPage,tempIndex);
-        myPage->EmptyItOut();
-    }
-    pageWritten=true;
-    int temp1=myFile->Close();
-    int closeValue=myFile->GetmyFilDes();
-    if(closeValue==-1)
-    {
-        return 0;
-    }
-    else
-    {
-        return 1;
-    }
+	myGDBFile->Add(rec);
 }
 
-/*
-Return Type: void
-
-This function is used to add records to the end of the file.
-
-*/
-void DBFile::Add (Record &rec) 
+int DBFile::GetNext(Record &fetchme) 
 {
-    int temp=myPage->Append(&rec);
-    if(temp==0)
-    {
-        off_t tempIndex=myFile->GetLength();
-        if(tempIndex==0)
-        {
-            currentPageIndex=0;
-        }
-        else
-        {
-            currentPageIndex=tempIndex-1;
-        }
-        myFile->AddPage(myPage,currentPageIndex);
-        myPage->EmptyItOut();
-        myPage->Append(&rec);
-    }
-    pageWritten=false;
+	return myGDBFile->GetNext(fetchme);
 }
 
-/*
-Return Type: Integer
-1: Success
-0: Failure
-
-This function simply gets the next record from the file and returns it to
-the user.
-
-*/
-int DBFile::GetNext (Record &fetchme) 
+int DBFile::GetNext(Record &fetchme, CNF &cnf, Record &literal) 
 {
-    while(myPage->GetFirst(&fetchme)!=1)
-    {
-        off_t fileLength;
-        if(myFile->GetLength()==0)
-        {
-            fileLength=0;
-        }
-        else
-        {
-           fileLength=myFile->GetLength()-1;
-        }
-        if(++currentPageIndex<fileLength)
-        {
-           myFile->GetPage(myPage,currentPageIndex);
-        }
-        else
-        {
-           return 0;
-        }
-    }
-    return 1;
+	return myGDBFile->GetNext(fetchme,cnf,literal);
 }
 
-/*
-Return Type: Integer
-1: Success
-0: Failure
-
-This function accepts a selection predicate and returns the next record
-in the file which is accepted by the selection predicate.
-
-*/
-int DBFile::GetNext (Record &fetchme, CNF &cnf, Record &literal) 
+File* DBFile::GetMyFile()
 {
-    ComparisonEngine cEngine;
-    while(GetNext(fetchme))
-    {
-        if(cEngine.Compare(&fetchme,&literal,&cnf))
-        {
-            return 1;
-        }
-    }
-    return 0;
+	return myGDBFile->GetFile();
 }
 
-/*
-Reture Type: File* 
-
-Getter Method
-*/
-File* DBFile::GetFile()
+Page* DBFile::GetMyPage()
 {
-    return myFile;
-}
-
-/*
-Reture Type: Page* 
-
-Getter Method
-*/
-Page* DBFile::GetCurrentPage()
-{
-    return myPage;
+	return myGDBFile->GetPage();
 }

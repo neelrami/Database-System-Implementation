@@ -1,0 +1,23 @@
+
+BEGIN
+loadTest
+loadTest.tbl
+l_index Int
+l_name String
+END
+
+BEGIN
+addTest
+addTest.tbl
+a_index Int
+a_name String
+END
+
+BEGIN
+getnextTest
+getnextTest.tbl
+g_index Int
+g_name String
+END
+
+

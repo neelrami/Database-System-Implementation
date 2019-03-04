@@ -1,50 +1,39 @@
 #ifndef DBFILE_H
 #define DBFILE_H
 
-#include <iostream>
-#include <stdlib.h>
 #include "TwoWayList.h"
 #include "Record.h"
 #include "Schema.h"
 #include "File.h"
 #include "Comparison.h"
 #include "ComparisonEngine.h"
+#include "GenericDBFile.h"
+#include "HeapFile.h"
+#include "SortedFile.h"
 
-typedef enum {heap, sorted, tree} fType;
 
 // stub DBFile header..replace it with your own DBFile.h 
 
-class DBFile 
-{
-	public:
-		File* myFile;
-		Record* currentRecord;
-		Page* myPage;
-		bool pageWritten;
-		off_t currentPageIndex;
+class DBFile {
 
-	public:
-		DBFile(); 
-		~DBFile();
-		
-		int Create(const char *fpath, fType file_type, void *startup);
-		
-		int Open(const char *fpath);
-		
-		int Close();
+public:
+	DBFile (); 
 
-		void Load(Schema &myschema, const char *loadpath);
+	int Create (char *fpath, fType file_type, void *startup);
+	int Open (char *fpath);
+	int Close ();
 
-		void MoveFirst();
-		
-		void Add(Record &addme);
-		
-		int GetNext(Record &fetchme);
-		
-		int GetNext(Record &fetchme, CNF &cnf, Record &literal);
+	void Load (Schema &myschema, char *loadpath);
 
-		File* GetFile();
+	void MoveFirst ();
+	void Add (Record &addme);
+	int GetNext (Record &fetchme);
+	int GetNext (Record &fetchme, CNF &cnf, Record &literal);
+	File* GetMyFile();
+	Page* GetMyPage();
+private:
 
-		Page* GetCurrentPage();
+	GenericDBFile* myGDBFile;
+
 };
 #endif

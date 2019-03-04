@@ -124,6 +124,7 @@ void Page :: FromBinary (char *bits)
 	numRecs = ((int *) bits)[0];
 
 	// sanity check
+	//cout<<numRecs<<endl;
 	if (numRecs > 1000000 || numRecs < 0) 
 	{
 		cerr << "This is probably an error.  Found " << numRecs << " records on a page.\n";
@@ -292,7 +293,6 @@ int File :: Open (int fileLen, char *fName)
 	// read in the buffer if needed
 	if (fileLen != 0) 
 	{
-
 		// read in the first few bits, which is the page size
 		lseek (myFilDes, 0, SEEK_SET);
 		read (myFilDes, &curLength, sizeof (off_t));

@@ -1,5 +1,5 @@
 
-CC = g++ -O2 -Wno-deprecated
+CC = g++ -std=c++0x -O2 -Wno-deprecated
 
 tag = -i
 
@@ -13,14 +13,20 @@ ifdef linux
 tag = -n
 endif
 
-gTest2: libgtest.a sampletest2
-	$(DD) $(SRC_DIR)/gTestProj2.cc $(BIN_DIR)/libgtest.a -o $(BIN_DIR)/gTestProj2 $(BIN_DIR)/Record.o $(BIN_DIR)/Comparison.o $(BIN_DIR)/ComparisonEngine.o $(BIN_DIR)/Schema.o $(BIN_DIR)/BigQ.o $(BIN_DIR)/Pipe.o $(BIN_DIR)/File.o $(BIN_DIR)/DBFile.o $(BIN_DIR)/y.tab.o $(BIN_DIR)/lex.yy.o
+gTest21: libgtest.a sampletest21
+	$(DD) $(SRC_DIR)/gTestProj21.cc $(BIN_DIR)/libgtest.a -o $(BIN_DIR)/gTestProj21 $(BIN_DIR)/Record.o $(BIN_DIR)/Comparison.o $(BIN_DIR)/ComparisonEngine.o $(BIN_DIR)/Schema.o $(BIN_DIR)/BigQ.o $(BIN_DIR)/Pipe.o $(BIN_DIR)/File.o $(BIN_DIR)/GenericDBFile.o $(BIN_DIR)/DBFile.o $(BIN_DIR)/HeapFile.o $(BIN_DIR)/SortedFile.o $(BIN_DIR)/y.tab.o $(BIN_DIR)/lex.yy.o
 
-sampletest2: Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o Pipe.o gTestProj2.o y.tab.o lex.yy.o 
+sampletest21: Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o GenericDBFile.o DBFile.o HeapFile.o SortedFile.o Pipe.o gTestProj21.o y.tab.o lex.yy.o 
 	mv *.o $(BIN_DIR)
 
-test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o Pipe.o y.tab.o lex.yy.o test.o
-	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o Pipe.o y.tab.o lex.yy.o test.o -lfl -lpthread
+gTest2: libgtest.a sampletest2
+	$(DD) $(SRC_DIR)/gTestProj2.cc $(BIN_DIR)/libgtest.a -o $(BIN_DIR)/gTestProj2 $(BIN_DIR)/Record.o $(BIN_DIR)/Comparison.o $(BIN_DIR)/ComparisonEngine.o $(BIN_DIR)/Schema.o $(BIN_DIR)/BigQ.o $(BIN_DIR)/Pipe.o $(BIN_DIR)/File.o $(BIN_DIR)/GenericDBFile.o $(BIN_DIR)/DBFile.o $(BIN_DIR)/HeapFile.o $(BIN_DIR)/SortedFile.o $(BIN_DIR)/y.tab.o $(BIN_DIR)/lex.yy.o
+
+sampletest2: Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o GenericDBFile.o DBFile.o HeapFile.o SortedFile.o Pipe.o gTestProj21.o y.tab.o lex.yy.o 
+	mv *.o $(BIN_DIR)
+
+test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o GenericDBFile.o DBFile.o HeapFile.o SortedFile.o Pipe.o y.tab.o lex.yy.o test.o
+	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o GenericDBFile.o DBFile.o HeapFile.o SortedFile.o Pipe.o y.tab.o lex.yy.o test.o -lfl -lpthread
 	mv *.o $(BIN_DIR)
 
 test.o: $(SRC_DIR)/test.cc
@@ -41,6 +47,15 @@ BigQ.o: $(SRC_DIR)/BigQ.cc
 DBFile.o: $(SRC_DIR)/DBFile.cc
 	$(CC) -g -c $(SRC_DIR)/DBFile.cc
 
+HeapFile.o: $(SRC_DIR)/HeapFile.cc
+	$(CC) -g -c $(SRC_DIR)/HeapFile.cc
+
+SortedFile.o: $(SRC_DIR)/SortedFile.cc
+	$(CC) -g -c $(SRC_DIR)/SortedFile.cc
+
+GenericDBFile.o: $(SRC_DIR)/GenericDBFile.cc
+	$(CC) -g -c $(SRC_DIR)/GenericDBFile.cc
+ 
 File.o: $(SRC_DIR)/File.cc
 	$(CC) -g -c $(SRC_DIR)/File.cc
 
@@ -50,8 +65,8 @@ Record.o: $(SRC_DIR)/Record.cc
 Schema.o: $(SRC_DIR)/Schema.cc
 	$(CC) -g -c $(SRC_DIR)/Schema.cc
 
-gTestProj2.o : $(SRC_DIR)/gTestProj2.cc
-	$(CC) -g -c $(SRC_DIR)/gTestProj2.cc
+gTestProj21.o : $(SRC_DIR)/gTestProj21.cc
+	$(CC) -g -c $(SRC_DIR)/gTestProj21.cc
 
 libgtest.a: 
 	g++ -w -isystem $(GTEST_DIR)/include -I$(GTEST_DIR) -pthread -c $(GTEST_DIR)/src/gtest-all.cc

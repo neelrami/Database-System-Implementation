@@ -20,7 +20,6 @@ TEST (TPMMS_Test1, SubTest)
   int buffsz=100; 
 	Pipe input(buffsz);
 	Pipe output(buffsz);
-  
   BigQ* myBigQ=new BigQ(input,output,myOrderMaker1,runlen);
   EXPECT_EQ(5,myBigQ->myDS->runLength);
   delete myBigQ;

@@ -101,6 +101,41 @@ OrderMaker :: OrderMaker(Schema *schema) {
         }
 }
 
+int OrderMaker :: getNumAtts()
+{
+	return numAtts;
+}
+
+int* OrderMaker :: getWhichAtts()
+{
+	return whichAtts;
+}
+
+Type* OrderMaker :: getWhichTypes()
+{
+	return whichTypes;
+}
+
+void OrderMaker :: setNumAtts(int temp)
+{
+	numAtts=temp;
+}
+
+void OrderMaker :: setWhichAtts(int* temp,int tempNum)
+{
+	for(int i=0;i<tempNum;i++)
+	{
+		whichAtts[i]=(*(temp+i));
+	}
+}
+
+void OrderMaker :: setWhichTypes(Type* temp, int tempNum)
+{
+	for(int i=0;i<tempNum;i++)
+	{
+		whichTypes[i]=(*(temp+i));
+	}
+}
 
 void OrderMaker :: Print () {
 	printf("NumAtts = %5d\n", numAtts);
@@ -177,6 +212,82 @@ int CNF :: GetSortOrders (OrderMaker &left, OrderMaker &right) {
 
 }
 
+int CNF:: GetSortOrders1(OrderMaker &left, OrderMaker &right)
+{
+	left.numAtts = 0;
+    int c=0;
+        
+	// loop through all of the disjunctions in the CNF and find those
+
+	for(int j=0;j<right.numAtts;j++)
+	{
+    // that are acceptable for use in a sort ordering
+    	bool found=false;
+    	for (int i = 0; i < numAnds; i++) 
+		{
+
+        	// if we don't have a disjunction of length one, then it
+        	// can't be acceptable for use with a sort ordering
+        	if(orLens[i] != 1) 
+			{
+            	continue;
+        	}
+
+        	// made it this far, so first verify that it is an equality check
+        	if(orList[i][0].op != Equals) 
+			{
+            	continue;
+        	}
+
+        	// now verify that it operates over atts from both tables
+        	if ((orList[i][0].operand1 == Left && orList[i][0].operand2 == Left) ||
+        	(orList[i][0].operand2 == Right && orList[i][0].operand1 == Right) ||
+        	(orList[i][0].operand1==Left && orList[i][0].operand2 == Right) ||
+        	(orList[i][0].operand1==Right && orList[i][0].operand2 == Left)) 
+			{
+            	continue;
+            	//break;
+        	}
+
+
+        	// since we are here, we have found a join attribute!!!
+        	// so all we need to do is add the new comparison info into the
+        	// relevant structures
+
+
+        	if(orList[i][0].operand1 == Left) 
+			{
+            	if (orList[i][0].whichAtt1==right.whichAtts[j])
+				{
+                	found=true;
+					left.whichAtts[c]=orList[i][0].whichAtt2;
+                	left.whichTypes[c++]=orList[i][0].attType;
+                	break;
+            	}
+        	}
+        	else if(orList[i][0].operand2==Left)
+			{
+            	if(orList[i][0].whichAtt2==right.whichAtts[j])
+				{
+            		found=true;
+            		left.whichAtts[c]=orList[i][0].whichAtt1;
+            		left.whichTypes[c++]=orList[i][0].attType;
+            		break;
+        		}
+        	}
+		}
+        
+		if(found==false)
+		{
+			break;
+		}
+                        
+
+    }
+
+    left.numAtts=c;
+    return c;
+}
 
 void CNF :: Print () {
 
