@@ -73,7 +73,7 @@ class SortedFile: public GenericDBFile
         
         int GetNextUtil2(Record &fetchme, CNF &cnf, Record &literal);
         
-        int BSearch(Record &fetchme,CNF &cnf,Record &literal);
+        int MyBinarySearch(Record &fetchme,CNF &cnf,Record &literal);
 
 };
 

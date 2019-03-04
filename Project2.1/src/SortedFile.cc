@@ -201,18 +201,24 @@ int SortedFile::Open(char *f_path)
     int tempRunLen;
 	int tempNumAtts;
     
+    //read fileType from metadata file
     fscanf(metaData,"%d",&tempFileType);
 
+    //read run length from metadata file
     fscanf(metaData,"%d",&tempRunLen);
 
     mySFSortInfo=new SortInfo();
     mySFSortInfo->setRunLength(tempRunLen);
 
+    //read number of attributes from metadata file
     fscanf(metaData,"%d",&tempNumAtts);
+    
     mySFSortInfo->myOrder=new OrderMaker();
     mySFSortInfo->myOrder->setNumAtts(tempNumAtts);
 
     int tempArr1[tempNumAtts];
+
+    //read attribute number of each attribute from metadata file
     for(int i=0;i<tempNumAtts;i++)
     {
         int tempWhichAtt=0;
@@ -223,6 +229,8 @@ int SortedFile::Open(char *f_path)
     mySFSortInfo->myOrder->setWhichAtts(tempArr1,tempNumAtts);
 
     Type tempArr2[tempNumAtts];
+
+    //read attribute type of each attribute from metadata file
     for(int i=0;i<tempNumAtts;i++)
     {
         int tempWhichType=0;
@@ -392,7 +400,7 @@ int SortedFile::GetNext(Record &fetchme, CNF &cnf, Record &literal)
 			
 			if(cnf.GetSortOrders1(*mySFOrderMaker,*(mySFSortInfo->myOrder))>0)
 			{  
-                search=BSearch(fetchme,cnf,literal);
+                search=MyBinarySearch(fetchme,cnf,literal);
                 ComparisonEngine engine;
 				if(search)
 				{
@@ -528,120 +536,6 @@ void SortedFile::Merge()
     MoveFirst();
 }
 
-/*
-Return Type: Pointer to File Object 
-(File*)
-
-Function Description
-1. A Getter method which returns a pointer of a File Object.
-*/
-
-File* SortedFile::GetFile()
-{
-    return mySFFile;
-}
-
-
-/*
-Return Type: Pointer to Page Object 
-(Page*)
-
-Function Description
-1. A Getter method which returns a pointer of a Page Object.
-*/
-
-Page* SortedFile::GetPage()
-{
-    return mySFPage;
-}
-
-/*
-Return Type: Integer
-1: Success
-0: Failure
-
-Function Description
-1. 
-
-*/
-int SortedFile::GetNextUtil1(Record &fetchme, CNF &cnf, Record &literal) 
-{
-    ComparisonEngine ce1;
-    while(true)
-    {
-		if(mySFPage->GetFirst(&fetchme)==1)          
-		{
-			if (ce1.Compare(&fetchme, &literal, &cnf))
-            {
-                return 1;
-            }    
-					
-		}
-		else        
-		{
-            off_t fileLength;
-            if(mySFFile->GetLength()==0)
-            {       
-                fileLength=0;
-            }
-            else
-            {
-                fileLength=mySFFile->GetLength()-1;
-            }
-			if(++currentPageIndex<fileLength)
-            {
-                mySFFile->GetPage(mySFPage,currentPageIndex);
-            }
-            else
-            {
-                return 0;
-            }         
-					
-		}
-    }
-}
-
-int SortedFile::GetNextUtil2(Record &fetchme, CNF &cnf, Record &literal)
-{
-	ComparisonEngine ce1;
-	while(true)
-	{
-		if(mySFPage->GetFirst(&fetchme)==1)
-		{         
-			if(ce1.Compare(&literal,mySFOrderMaker,&fetchme,mySFSortInfo->myOrder)==0)
-			{
-				if(ce1.Compare(&fetchme,&literal,&cnf))
-                {
-                    return 1;
-                }    
-			}
-			else
-            {
-                return 0;
-            }
-		}
-		else
-		{   
-            off_t fileLength;
-            if(mySFFile->GetLength()==0)
-            {       
-                fileLength=0;
-            }
-            else
-            {
-                fileLength=mySFFile->GetLength()-1;
-            }
-			if(++currentPageIndex<fileLength)
-            {
-                mySFFile->GetPage(mySFPage,currentPageIndex);
-            }
-            else
-            {
-                return 0;
-            }                 
-		}
-	}
-}
 
 /*
 Return Type: Integer
@@ -650,11 +544,10 @@ Return Type: Integer
 
 Function Description
 
-1. 
-
+1. This function performs binary search on the records in the file.
 
 */
-int SortedFile::BSearch(Record& fetchme,CNF &cnf,Record &literal)
+int SortedFile::MyBinarySearch(Record& fetchme,CNF &cnf,Record &literal)
 {
 	off_t low,mid=currentPageIndex;
     off_t high=mySFFile->GetLength()-2;
@@ -717,7 +610,7 @@ int SortedFile::BSearch(Record& fetchme,CNF &cnf,Record &literal)
 			}
 		}
 	}
-    if(!flag && mid < mySFFile->GetLength()-2)
+    if(flag==false && mid < mySFFile->GetLength()-2)
     {
 		mySFFile->GetPage(mySFPage,mid+1);
 		if(mySFPage->GetFirst(&fetchme)==1 && ce1.Compare(&literal, mySFOrderMaker, &fetchme,mySFSortInfo->myOrder) == 0)
@@ -726,12 +619,138 @@ int SortedFile::BSearch(Record& fetchme,CNF &cnf,Record &literal)
 			currentPageIndex=mid+1;
 		}
 	}
-	if(!flag)
-    {
-        return 0;
-    }
-	else
+	if(flag==true)
     {
         return 1;
     }
+	else
+    {
+        return 0;
+    }
 }
+
+/*
+Return Type: Pointer to File Object 
+(File*)
+
+Function Description
+1. A Getter method which returns a pointer of a File Object.
+*/
+
+File* SortedFile::GetFile()
+{
+    return mySFFile;
+}
+
+
+/*
+Return Type: Pointer to Page Object 
+(Page*)
+
+Function Description
+1. A Getter method which returns a pointer of a Page Object.
+*/
+
+Page* SortedFile::GetPage()
+{
+    return mySFPage;
+}
+
+/*
+Return Type: Integer
+1: Success
+0: Failure
+
+Function Description
+1. This function sequentially scans the records and compares them using Comaprison Engine.
+
+*/
+int SortedFile::GetNextUtil1(Record &fetchme, CNF &cnf, Record &literal) 
+{
+    ComparisonEngine ce1;
+    while(true)
+    {
+		if(mySFPage->GetFirst(&fetchme)==1)          
+		{
+			if(ce1.Compare(&fetchme, &literal, &cnf))
+            {
+                return 1;
+            }    
+					
+		}
+		else        
+		{
+            off_t fileLength;
+            if(mySFFile->GetLength()==0)
+            {       
+                fileLength=0;
+            }
+            else
+            {
+                fileLength=mySFFile->GetLength()-1;
+            }
+			if(++currentPageIndex<fileLength)
+            {
+                mySFFile->GetPage(mySFPage,currentPageIndex);
+            }
+            else
+            {
+                return 0;
+            }         
+					
+		}
+    }
+}
+
+/*
+Return Type: Integer
+1: Success
+0: Failure
+
+Function Description
+1. This function sequentially scans the records and compares them using Comaprison Engine.
+
+*/
+
+int SortedFile::GetNextUtil2(Record &fetchme, CNF &cnf, Record &literal)
+{
+	ComparisonEngine ce1;
+	while(true)
+	{
+		if(mySFPage->GetFirst(&fetchme)==1)
+		{         
+			if(ce1.Compare(&literal,mySFOrderMaker,&fetchme,mySFSortInfo->myOrder)==0)
+			{
+				if(ce1.Compare(&fetchme,&literal,&cnf))
+                {
+                    return 1;
+                }    
+			}
+			else
+            {
+                return 0;
+            }
+		}
+		else
+		{   
+            off_t fileLength;
+            if(mySFFile->GetLength()==0)
+            {       
+                fileLength=0;
+            }
+            else
+            {
+                fileLength=mySFFile->GetLength()-1;
+            }
+			if(++currentPageIndex<fileLength)
+            {
+                mySFFile->GetPage(mySFPage,currentPageIndex);
+            }
+            else
+            {
+                return 0;
+            }                 
+		}
+	}
+}
+
