@@ -392,7 +392,7 @@ int SortedFile::GetNext(Record &fetchme, CNF &cnf, Record &literal)
         if(queryFlag==false)
 		{
             queryFlag=true;
-			int search;
+			int tempVar;
             if(mySFOrderMaker==NULL)
             {
                 mySFOrderMaker=new OrderMaker();
@@ -400,9 +400,9 @@ int SortedFile::GetNext(Record &fetchme, CNF &cnf, Record &literal)
 			
 			if(cnf.GetSortOrders1(*mySFOrderMaker,*(mySFSortInfo->myOrder))>0)
 			{  
-                search=MyBinarySearch(fetchme,cnf,literal);
+                tempVar=MyBinarySearch(fetchme,cnf,literal);
                 ComparisonEngine engine;
-				if(search)
+				if(tempVar)
 				{
 					if (engine.Compare(&fetchme, &literal, &cnf))  
                     {

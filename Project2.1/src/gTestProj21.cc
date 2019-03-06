@@ -187,11 +187,93 @@ TEST (SFLoadTest, SubTest1)
     
     dbfile->Create(tempFilePath, sorted, &startup);
     dbfile->Open(tempFilePath);    
-    dbfile->Load (*testSchema, loadPath);
+    dbfile->Load(*testSchema, loadPath);
     dbfile->Close();
     Page* tempPage=new Page();
     delete tempPage;
     delete dbfile;
+}
+
+TEST (GetNext1Test, SubTest1)
+{
+    char catalog_path[]="catalog";
+    char region[]="region";
+    char loadPath[]="region.tbl";
+    
+    Schema* testSchema=new Schema(catalog_path,region);
+
+    OrderMaker* myOrderMaker1=new OrderMaker(testSchema);
+    int runlen=5;
+    struct 
+    {
+        OrderMaker* o; 
+        int l;
+    } startup = {myOrderMaker1, runlen};
+    
+    char* tempFilePath="region.bin";
+
+    DBFile* dbfile=new DBFile();
+    Record tempRecord;
+    Record* tempRecord1=new Record();
+    dbfile->Create (tempFilePath, sorted, &startup);
+    dbfile->Open(tempFilePath);
+    FILE* tempFile;
+    int counter=0;
+    tempFile=fopen(loadPath,"r");
+    while(tempRecord.SuckNextRecord(testSchema,tempFile)!=0)
+    {
+        if(counter==0)
+        {
+            tempRecord1=new Record(tempRecord);
+        }
+        dbfile->Add(tempRecord);
+        counter++;
+    }
+    EXPECT_EQ(1,dbfile->GetNext(*tempRecord1));
+    dbfile->Close();
+}
+
+TEST (GetNext2Test, SubTest1)
+{
+    char catalog_path[]="catalog";
+    char region[]="region";
+    char loadPath[]="region.tbl";
+    
+    Schema* testSchema=new Schema(catalog_path,region);
+
+    OrderMaker* myOrderMaker1=new OrderMaker(testSchema);
+    int runlen=5;
+    struct 
+    {
+        OrderMaker* o; 
+        int l;
+    } startup = {myOrderMaker1, runlen};
+    
+    char* tempFilePath="region.bin";
+
+    DBFile* dbfile=new DBFile();
+    Record tempRecord;
+    Record* tempRecord1;
+    dbfile->Create (tempFilePath, sorted, &startup);
+    dbfile->Open(tempFilePath);
+    FILE* tempFile;
+    int counter=0;
+    tempFile=fopen(loadPath,"r");
+    while(tempRecord.SuckNextRecord(testSchema,tempFile)!=0)
+    {
+        if(counter==0)
+        {
+            tempRecord1=new Record(tempRecord);
+        }
+        dbfile->Add(tempRecord);
+        counter++;
+    }
+    CNF myCNF;
+    Record myRecord;
+    struct AndList *final;
+    myCNF.GrowFromParseTree(final,testSchema,myRecord);
+    EXPECT_EQ(1,dbfile->GetNext(tempRecord,myCNF,myRecord));
+    dbfile->Close();
 }
 
 int main(int argc, char **argv) 
