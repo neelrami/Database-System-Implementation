@@ -40,7 +40,7 @@ Pipe :: ~Pipe () {
 
 
 void Pipe :: Insert (Record *insertMe) {
-
+	
 	// first, get a mutex on the pipeline
 	pthread_mutex_lock (&pipeMutex);
 

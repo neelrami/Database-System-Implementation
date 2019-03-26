@@ -281,8 +281,9 @@ void Record :: Copy (Record *copyMe) {
 
 void Record :: Project (int *attsToKeep, int numAttsToKeep, int numAttsNow) {
 	// first, figure out the size of the new record
+	cout<<"numAttsToKeep "<<numAttsToKeep<<endl;
 	int totSpace = sizeof (int) * (numAttsToKeep + 1);
-
+	cout<<"totalSpace Before "<<totSpace<<endl;
 	for (int i = 0; i < numAttsToKeep; i++) {
 		// if we are keeping the last record, be careful!
 		if (attsToKeep[i] == numAttsNow - 1) {
@@ -291,14 +292,16 @@ void Record :: Project (int *attsToKeep, int numAttsToKeep, int numAttsNow) {
 		} else {
 			// in this case, subtract the start of the next field from the start of this field
 			totSpace += ((int *) bits)[attsToKeep[i] + 2] - ((int *) bits)[attsToKeep[i] + 1]; 
+			cout<<"totSpace Else "<<totSpace<<endl;
 		}
 	}
 
 	// now, allocate the new bits
-	char *newBits = new (std::nothrow) char[totSpace];
+	char* newBits = new (std::nothrow) char[totSpace];
 	if (newBits == NULL)
 	{
-		cout << "ERROR : Not enough memory. EXIT !!!\n";
+		cout<<"totSpace After"<<totSpace<<endl;
+		cout << "11111ERROR : Not enough memory. EXIT !!!\n";
 		exit(1);
 	}
 

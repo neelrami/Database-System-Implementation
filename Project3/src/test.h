@@ -182,6 +182,7 @@ void setup () {
 			free (mem);
 			exit (1);
 		}
+
 	}
 	else {
 		cerr << " Test settings files 'test.cat' missing \n";

@@ -383,10 +383,12 @@ int SortedFile::GetNext(Record &fetchme, CNF &cnf, Record &literal)
 {
     if(myMode==Write)
     {
+        cout<<"HELLO"<<endl;
         Merge();
         queryFlag=false;
 		sortOrderFlag=true;
     }
+    cout<<"ddd"<<endl;
     if(sortOrderFlag==true)
 	{
         if(queryFlag==false)
@@ -450,6 +452,7 @@ Function Description
 
 void SortedFile::Merge()
 {
+    cout<<"bbb"<<endl;
     myMode=Read;
     mySFInputPipe->ShutDown();
     Record* temp1=new Record();

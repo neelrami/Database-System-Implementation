@@ -43,13 +43,14 @@ class OrderMaker {
 	friend class ComparisonEngine;
 	friend class CNF;
 
-	int numAtts;
-
-	int whichAtts[MAX_ANDS];
-	Type whichTypes[MAX_ANDS];
-
+	
 public:
 	
+	int whichAtts[MAX_ANDS];
+	int numAtts;
+
+	Type whichTypes[MAX_ANDS];
+
 	// creates an empty OrdermMaker
 	OrderMaker();
 

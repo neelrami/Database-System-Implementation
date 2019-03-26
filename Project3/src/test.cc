@@ -8,11 +8,11 @@ Attribute SA = {"string", String};
 Attribute DA = {"double", Double};
 
 int clear_pipe (Pipe &in_pipe, Schema *schema, bool print) {
-	Record rec;
+	Record* rec=new Record();
 	int cnt = 0;
-	while (in_pipe.Remove (&rec)) {
+	while (in_pipe.Remove (rec)) {
 		if (print) {
-			rec.Print (schema);
+			rec->Print (schema);
 		}
 		cnt++;
 	}
@@ -20,15 +20,15 @@ int clear_pipe (Pipe &in_pipe, Schema *schema, bool print) {
 }
 
 int clear_pipe (Pipe &in_pipe, Schema *schema, Function &func, bool print) {
-	Record rec;
+	Record* rec=new Record();
 	int cnt = 0;
 	double sum = 0;
-	while (in_pipe.Remove (&rec)) {
+	while (in_pipe.Remove (rec)) {
 		if (print) {
-			rec.Print (schema);
+			rec->Print (schema);
 		}
 		int ival = 0; double dval = 0;
-		func.Apply (rec, ival, dval);
+		func.Apply (*rec, ival, dval);
 		sum += (ival + dval);
 		cnt++;
 	}
@@ -38,8 +38,12 @@ int clear_pipe (Pipe &in_pipe, Schema *schema, Function &func, bool print) {
 int pipesz = 100; // buffer sz allowed for each pipe
 int buffsz = 100; // pages of memory allowed for operations
 
-SelectFile SF_ps, SF_p, SF_s, SF_o, SF_li, SF_c;
-DBFile dbf_ps, dbf_p, dbf_s, dbf_o, dbf_li, dbf_c;
+SelectFile* SF_ps=new SelectFile();
+SelectFile* SF_p=new SelectFile();
+SelectFile SF_s, SF_o, SF_li, SF_c;
+DBFile* dbf_ps=new DBFile();
+DBFile* dbf_p=new DBFile();
+DBFile dbf_s, dbf_o, dbf_li, dbf_c;
 Pipe _ps (pipesz), _p (pipesz), _s (pipesz), _o (pipesz), _li (pipesz), _c (pipesz);
 CNF cnf_ps, cnf_p, cnf_s, cnf_o, cnf_li, cnf_c;
 Record lit_ps, lit_p, lit_s, lit_o, lit_li, lit_c;
@@ -54,16 +58,16 @@ int cAtts = 8;
 int nAtts = 4;
 int rAtts = 3;
 
-void init_SF_ps (char *pred_str, int numpgs) {
-	dbf_ps.Open (ps->path());
+void init_SF_ps (char pred_str[], int numpgs) {
+	dbf_ps->Open (ps->path());
 	get_cnf (pred_str, ps->schema (), cnf_ps, lit_ps);
-	SF_ps.Use_n_Pages (numpgs);
+	SF_ps->Use_n_Pages (numpgs);
 }
 
-void init_SF_p (char *pred_str, int numpgs) {
-	dbf_p.Open (p->path());
+void init_SF_p (char pred_str[], int numpgs) {
+	dbf_p->Open (p->path());
 	get_cnf (pred_str, p->schema (), cnf_p, lit_p);
-	SF_p.Use_n_Pages (numpgs);
+	SF_p->Use_n_Pages (numpgs);
 }
 
 void init_SF_s (char *pred_str, int numpgs) {
@@ -94,16 +98,15 @@ void init_SF_c (char *pred_str, int numpgs) {
 // expected output: 31 records
 void q1 () {
 
-	char *pred_ps = "(ps_supplycost < 1.03)";
+	char pred_ps[] = "(ps_supplycost < 20.0)";
 	init_SF_ps (pred_ps, 100);
 
-	SF_ps.Run (dbf_ps, _ps, cnf_ps, lit_ps);
-	SF_ps.WaitUntilDone ();
-
+	SF_ps->Run (*dbf_ps, _ps, cnf_ps, lit_ps);
+	
 	int cnt = clear_pipe (_ps, ps->schema (), true);
 	cout << "\n\n query1 returned " << cnt << " records \n";
 
-	dbf_ps.Close ();
+	dbf_ps->Close ();
 }
 
 
@@ -111,21 +114,21 @@ void q1 () {
 // expected output: 22 records
 void q2 () {
 
-	char *pred_p = "(p_retailprice > 931.01) AND (p_retailprice < 931.3)";
+	char pred_p[] = "(p_retailprice > 931.01) AND (p_retailprice < 931.3)";
 	init_SF_p (pred_p, 100);
 
-	Project P_p;
-		Pipe _out (pipesz);
-		int keepMe[] = {0,1,7};
-		int numAttsIn = pAtts;
-		int numAttsOut = 3;
-	P_p.Use_n_Pages (buffsz);
+	Project* P_p=new Project();
+	Pipe _out (pipesz);
+	int keepMe[] = {0,1,7};
+	int numAttsIn = pAtts;
+	int numAttsOut = 3;
+	P_p->Use_n_Pages (buffsz);
 
-	SF_p.Run (dbf_p, _p, cnf_p, lit_p);
-	P_p.Run (_p, _out, keepMe, numAttsIn, numAttsOut);
+	SF_p->Run (*dbf_p, _p, cnf_p, lit_p);
+	P_p->Run (_p, _out, keepMe, numAttsIn, numAttsOut);
 
-	SF_p.WaitUntilDone ();
-	P_p.WaitUntilDone ();
+	SF_p->WaitUntilDone ();
+	P_p->WaitUntilDone ();
 
 	Attribute att3[] = {IA, SA, DA};
 	Schema out_sch ("out_sch", numAttsOut, att3);
@@ -133,14 +136,14 @@ void q2 () {
 
 	cout << "\n\n query2 returned " << cnt << " records \n";
 
-	dbf_p.Close ();
+	dbf_p->Close ();
 }
 
 // select sum (s_acctbal + (s_acctbal * 1.05)) from supplier;
 // expected output: 9.24623e+07
 void q3 () {
 
-	char *pred_s = "(s_suppkey = s_suppkey)";
+	char pred_s[] = "(s_suppkey = s_suppkey)";
 	init_SF_s (pred_s, 100);
 
 	Sum T;
@@ -172,7 +175,7 @@ void q3 () {
 void q4 () {
 
 	cout << " query4 \n";
-	char *pred_s = "(s_suppkey = s_suppkey)";
+	char pred_s[] = "(s_suppkey = s_suppkey)";
 	init_SF_s (pred_s, 100);
 	SF_s.Run (dbf_s, _s, cnf_s, lit_s); // 10k recs qualified
 
@@ -201,11 +204,11 @@ void q4 () {
 			func.Print ();
 	T.Use_n_Pages (1);
 
-	SF_ps.Run (dbf_ps, _ps, cnf_ps, lit_ps); // 161 recs qualified
+	SF_ps->Run (*dbf_ps, _ps, cnf_ps, lit_ps); // 161 recs qualified
 	J.Run (_s, _ps, _s_ps, cnf_p_ps, lit_p_ps);
 	T.Run (_s_ps, _out, func);
 
-	SF_ps.WaitUntilDone ();
+	SF_ps->WaitUntilDone ();
 	J.WaitUntilDone ();
 	T.WaitUntilDone ();
 
@@ -218,7 +221,7 @@ void q4 () {
 // expected output: 9996 rows
 void q5 () {
 
-	char *pred_ps = "(ps_supplycost < 100.11)";
+	char pred_ps[] = "(ps_supplycost < 100.11)";
 	init_SF_ps (pred_ps, 100);
 
 	Project P_ps;
@@ -238,12 +241,12 @@ void q5 () {
 		char *fwpath = "ps.w.tmp";
 		FILE *writefile = fopen (fwpath, "w");
 
-	SF_ps.Run (dbf_ps, _ps, cnf_ps, lit_ps);
+	SF_ps->Run (*dbf_ps, _ps, cnf_ps, lit_ps);
 	P_ps.Run (_ps, __ps, keepMe, numAttsIn, numAttsOut);
 	D.Run (__ps, ___ps,__ps_sch);
 	W.Run (___ps, writefile, __ps_sch);
 
-	SF_ps.WaitUntilDone ();
+	SF_ps->WaitUntilDone ();
 	P_ps.WaitUntilDone ();
 	D.WaitUntilDone ();
 	W.WaitUntilDone ();
@@ -257,7 +260,7 @@ void q5 () {
 void q6 () {
 
 	cout << " query6 \n";
-	char *pred_s = "(s_suppkey = s_suppkey)";
+	char pred_s[] = "(s_suppkey = s_suppkey)";
 	init_SF_s (pred_s, 100);
 	SF_s.Run (dbf_s, _s, cnf_s, lit_s); // 10k recs qualified
 
@@ -288,11 +291,11 @@ void q6 () {
 			OrderMaker grp_order (&join_sch);
 	G.Use_n_Pages (1);
 
-	SF_ps.Run (dbf_ps, _ps, cnf_ps, lit_ps); // 161 recs qualified
+	SF_ps->Run (*dbf_ps, _ps, cnf_ps, lit_ps); // 161 recs qualified
 	J.Run (_s, _ps, _s_ps, cnf_p_ps, lit_p_ps);
 	G.Run (_s_ps, _out, grp_order, func);
 
-	SF_ps.WaitUntilDone ();
+	SF_ps->WaitUntilDone ();
 	J.WaitUntilDone ();
 	G.WaitUntilDone ();
 
@@ -300,6 +303,7 @@ void q6 () {
 	int cnt = clear_pipe (_out, &sum_sch, true);
 	cout << " query6 returned sum for " << cnt << " groups (expected 25 groups)\n"; 
 }
+
 
 void q7 () { 
 /*
@@ -365,6 +369,8 @@ int main (int argc, char *argv[]) {
 	}
 
 	void (*query_ptr[]) () = {&q1, &q2, &q3, &q4, &q5, &q6, &q7, &q8};  
+	
+	//void (*query_ptr[]) () = {&q1, &q2};
 	void (*query) ();
 	int qindx = atoi (argv[1]);
 
